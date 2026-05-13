@@ -10,13 +10,15 @@ repositories {
 }
 
 dependencies {
-    // dependencies are constrained to versions defined
-    // in /platform/build.gradle.kts
+    api(libs.org.tinylog.api)
+
     implementation(platform(project(":platform")))
 
     implementation(kotlin("stdlib"))
     implementation(libs.org.jetbrains.exposed.core)
     implementation(libs.org.jetbrains.exposed.dao)
+    implementation(libs.bundles.tinylog)
+
     testImplementation(libs.hamcrest.all)
     testImplementation(libs.junit.junit)
 }
