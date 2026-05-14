@@ -1,7 +1,9 @@
 package org.javacs.kt
 
 import org.tinylog.core.LogEntry
+import org.tinylog.core.TinylogLoggingProvider
 import org.tinylog.jul.JulTinylogBridge
+import org.tinylog.provider.ProviderRegistry
 import org.tinylog.writers.AbstractFormatPatternWriter
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -15,7 +17,7 @@ typealias LogLevel = org.tinylog.Level
 
 class LogMessage(val level: LogLevel, val message: String)
 
-object BackendWriter: AbstractFormatPatternWriter(mapOf()) {
+class BackendWriter(props: Map<String, String>): AbstractFormatPatternWriter(props) {
 
     private val queue = ConcurrentLinkedQueue<LogMessage>()
 
@@ -52,8 +54,12 @@ object BackendWriter: AbstractFormatPatternWriter(mapOf()) {
 
 fun LOG.connectJULFrontend() = JulTinylogBridge.activate()
 
-fun LOG.connectOutputBackend(backend: (LogMessage) -> Unit) = BackendWriter.connect(backend)
+fun LOG.connectOutputBackend(backend: (LogMessage) -> Unit) = backendWriters().forEach { it.connect(backend) }
 
 fun LOG.connectErrorBackend(backend: (LogMessage) -> Unit) {}
 
 fun LOG.connectStdioBackend() {}
+
+fun LOG.disconnectBackend() = backendWriters().forEach { it.disconnect() }
+
+fun LOG.backendWriters() = (ProviderRegistry.getLoggingProvider() as TinylogLoggingProvider).writers.filterIsInstance<BackendWriter>()
