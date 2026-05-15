@@ -382,7 +382,7 @@ private fun completeMembers(file: CompiledFile, cursor: Int, receiverExpr: KtExp
             val receiverType = if (unwrapNullable) try {
                 TypeUtils.makeNotNullable(expressionType)
             } catch (e: Exception) {
-                LOG.printStackTrace(e)
+                LOG.error(e)
                 expressionType
             } else expressionType
 

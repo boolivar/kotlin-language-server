@@ -114,8 +114,7 @@ class SymbolIndex(
                     LOG.info("Updated full symbol index in ${finished - started} ms! (${count} symbol(s))")
                 }
             } catch (e: Exception) {
-                LOG.error("Error while updating symbol index")
-                LOG.printStackTrace(e)
+                LOG.error(e, "Error while updating symbol index")
             }
 
             progress.close()
@@ -137,8 +136,7 @@ class SymbolIndex(
                 LOG.info("Updated symbol index in ${finished - started} ms! (${count} symbol(s))")
             }
         } catch (e: Exception) {
-            LOG.error("Error while updating symbol index")
-            LOG.printStackTrace(e)
+            LOG.error(e, "Error while updating symbol index")
         }
     }
 

@@ -394,8 +394,7 @@ private class CompilationEnvironment(
                                 }
                             }) })
                         } catch (e: Exception) {
-                            LOG.error("Error while loading script template classes")
-                            LOG.printStackTrace(e)
+                            LOG.error(e, "Error while loading script template classes")
                         }
                     }
 
