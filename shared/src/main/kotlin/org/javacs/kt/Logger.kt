@@ -67,3 +67,6 @@ fun LOG.disconnectBackend() = backendWriters().forEach { it.disconnect() }
 fun LOG.backendWriters() = (ProviderRegistry.getLoggingProvider() as TinylogLoggingProvider).writers.filterIsInstance<BackendWriter>()
 
 fun LOG.printStackTrace(ex: Throwable) = LOG.error(ex)
+
+inline fun log(depth: Int, level: LogLevel, message: String?, t: Throwable? = null)
+    = ProviderRegistry.getLoggingProvider().log(depth, null, level, t, null, message)
