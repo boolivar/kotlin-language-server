@@ -58,7 +58,7 @@ fun LOG.connectOutputBackend(backend: (LogMessage) -> Unit) = LOG.connectBackend
 
 fun LOG.connectErrorBackend(backend: (LogMessage) -> Unit) = LOG.connectBackend(backend)
 
-fun LOG.connectStdioBackend() { /* noop */ }
+fun LOG.connectStdioBackend() = Unit.also { System.getProperty("tinylog.configuration") ?: System.setProperty("tinylog.configuration", "tinylog-stdio.properties") }
 
 fun LOG.connectBackend(backend: (LogMessage) -> Unit) = backendWriters().forEach { it.connect(backend) }
 
