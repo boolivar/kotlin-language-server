@@ -47,18 +47,20 @@ class BackendWriter(props: Map<String, String>): AbstractFormatPatternWriter(pro
         }
     }
 
-    override fun flush() {}
+    override fun flush() { /* noop */ }
 
     override fun close() = disconnect()
 }
 
 fun LOG.connectJULFrontend() = JulTinylogBridge.activate()
 
-fun LOG.connectOutputBackend(backend: (LogMessage) -> Unit) = backendWriters().forEach { it.connect(backend) }
+fun LOG.connectOutputBackend(backend: (LogMessage) -> Unit) = LOG.connectBackend(backend)
 
-fun LOG.connectErrorBackend(backend: (LogMessage) -> Unit) {}
+fun LOG.connectErrorBackend(backend: (LogMessage) -> Unit) = LOG.connectBackend(backend)
 
-fun LOG.connectStdioBackend() {}
+fun LOG.connectStdioBackend() { /* noop */ }
+
+fun LOG.connectBackend(backend: (LogMessage) -> Unit) = backendWriters().forEach { it.connect(backend) }
 
 fun LOG.disconnectBackend() = backendWriters().forEach { it.disconnect() }
 
