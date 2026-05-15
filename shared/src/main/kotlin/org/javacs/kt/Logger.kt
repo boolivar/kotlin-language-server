@@ -65,3 +65,5 @@ fun LOG.connectBackend(backend: (LogMessage) -> Unit) = backendWriters().forEach
 fun LOG.disconnectBackend() = backendWriters().forEach { it.disconnect() }
 
 fun LOG.backendWriters() = (ProviderRegistry.getLoggingProvider() as TinylogLoggingProvider).writers.filterIsInstance<BackendWriter>()
+
+fun LOG.printStackTrace(ex: Throwable) = LOG.error(ex)
