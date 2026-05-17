@@ -18,7 +18,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          gradle-version: wrapper
+          gradle-version: '8.12'
       - name: Build
         run: gradle build
       - name: Upload Reports
