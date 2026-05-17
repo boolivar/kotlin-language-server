@@ -9,16 +9,16 @@ jobs:
   build:
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '11'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
       - name: Build
-        run: ./gradlew build
+        run: gradle build
       - name: Upload Reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
