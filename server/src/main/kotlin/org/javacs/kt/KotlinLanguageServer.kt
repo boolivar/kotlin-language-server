@@ -16,7 +16,6 @@ import org.javacs.kt.util.AsyncExecutor
 import org.javacs.kt.util.TemporaryDirectory
 import org.javacs.kt.util.parseURI
 import org.javacs.kt.externalsources.*
-import org.javacs.kt.index.SymbolIndex
 import java.io.Closeable
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
@@ -158,6 +157,8 @@ class KotlinLanguageServer(
         LogLevel.INFO -> MessageType.Info
         else -> MessageType.Log
     }
+
+    override fun setTrace(params: SetTraceParams?) = Unit
 
     override fun close() {
         textDocumentService.close()
