@@ -2,29 +2,43 @@ package org.javacs.kt
 
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.services.LanguageClient
+import org.javacs.kt.util.filePath
+import org.jetbrains.kotlin.cli.common.isWindows
 import org.junit.Before
 import org.junit.After
 import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermissions
 import java.util.concurrent.CompletableFuture
+import kotlin.io.path.setPosixFilePermissions
+import kotlin.io.path.toPath
+import kotlin.io.path.writeText
 
 abstract class LanguageServerTestFixture(
-    relativeWorkspaceRoot: String,
-    config: Configuration = Configuration()
+    var workspaceRoot: Path,
+    config: Configuration = Configuration(),
 ) : LanguageClient {
-    val workspaceRoot = absoluteWorkspaceRoot(relativeWorkspaceRoot)
-    val languageServer = createLanguageServer(config)
 
+    constructor(workspace: String, config: Configuration = Configuration())
+        : this(absoluteWorkspaceRoot(workspace), config)
+
+    init {
+        val stdlib = Unit::class.java.protectionDomain.codeSource.location.toURI().filePath
+        if (isWindows) {
+            workspaceRoot.resolve("kls-classpath.bat")
+                .writeText("@echo off\r\necho $stdlib")
+        } else {
+            workspaceRoot.resolve("kls-classpath")
+                .apply { writeText("#!/bin/sh\necho $stdlib") }
+                .setPosixFilePermissions(PosixFilePermissions.fromString("rwxr-xr-x"))
+        }
+    }
+
+    val languageServer = createLanguageServer(config)
     var diagnostics = listOf<Diagnostic>()
     val errors: List<Diagnostic>
         get() = diagnostics.filter { it.severity == DiagnosticSeverity.Error }
     val warnings: List<Diagnostic>
         get() = diagnostics.filter { it.severity == DiagnosticSeverity.Warning }
-
-    fun absoluteWorkspaceRoot(relativeWorkspaceRoot: String): Path {
-        val testResources = testResourcesRoot()
-        return testResources.resolve(relativeWorkspaceRoot)
-    }
 
     private fun createLanguageServer(config: Configuration): KotlinLanguageServer {
         val languageServer = KotlinLanguageServer(config)
@@ -175,10 +189,11 @@ abstract class LanguageServerTestFixture(
     }
 }
 
-fun testResourcesRoot(): Path {
-    val anchorTxt = LanguageServerTestFixture::class.java.getResource("/Anchor.txt").toURI()
-    return Paths.get(anchorTxt).parent!!
-}
+fun absoluteWorkspaceRoot(workspace: String): Path
+    = testResourcesRoot().resolve(workspace)
+
+fun testResourcesRoot(): Path
+    = LanguageServerTestFixture::class.java.getResource("/Anchor.txt")!!.toURI().toPath().parent
 
 open class SingleFileTestFixture(
     relativeWorkspaceRoot: String,
