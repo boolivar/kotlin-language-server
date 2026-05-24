@@ -39,7 +39,7 @@ class CompilerClassPath(
     )
         private set
 
-    private val async = AsyncExecutor()
+    private val async = AsyncExecutor(javaClass.simpleName)
 
     init {
         compiler.updateConfiguration(config)

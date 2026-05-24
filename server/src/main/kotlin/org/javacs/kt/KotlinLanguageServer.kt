@@ -39,7 +39,7 @@ class KotlinLanguageServer(
 
     private lateinit var client: LanguageClient
 
-    private val async = AsyncExecutor()
+    private val async = AsyncExecutor(javaClass.simpleName)
     private var progressFactory: Progress.Factory = Progress.Factory.None
         set(factory: Progress.Factory) {
             field = factory

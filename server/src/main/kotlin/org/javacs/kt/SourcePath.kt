@@ -29,7 +29,7 @@ class SourcePath(
     private val files = mutableMapOf<URI, SourceFile>()
     private val parseDataWriteLock = ReentrantLock()
 
-    private val indexAsync = AsyncExecutor()
+    private val indexAsync = AsyncExecutor(javaClass.simpleName)
     var indexEnabled: Boolean by indexingConfig::enabled
     val index = SymbolIndex(databaseService)
 
