@@ -171,6 +171,7 @@ class CompilerClassPath(
     override fun close() {
         compiler.close()
         outputDirectory.delete()
+        async.shutdown(awaitTermination = true)
     }
 }
 

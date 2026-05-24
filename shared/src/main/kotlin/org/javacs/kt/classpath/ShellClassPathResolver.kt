@@ -19,14 +19,17 @@ internal class ShellClassPathResolver(
         val cmd = script.toString()
         LOG.info("Run {} in {}", cmd, workingDirectory)
         val process = ProcessBuilder(cmd).directory(workingDirectory).start()
-
-        return process.inputStream.bufferedReader().readText()
-            .split(File.pathSeparator)
-            .asSequence()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .map { ClassPathEntry(Paths.get(it), null) }
-            .toSet()
+        try {
+            return process.inputStream.bufferedReader().readText()
+                .split(File.pathSeparator)
+                .asSequence()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map { ClassPathEntry(Paths.get(it), null) }
+                .toSet()
+        } finally {
+            process.waitFor()
+        }
     }
 
     companion object {
