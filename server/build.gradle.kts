@@ -1,3 +1,6 @@
+import java.io.FileReader
+import java.util.Properties
+
 plugins {
     kotlin("jvm")
     id("maven-publish")
@@ -67,6 +70,16 @@ dependencies {
 }
 
 configurations.forEach { config -> config.resolutionStrategy { preferProjectModules() } }
+
+tasks.withType<ProcessResources>().configureEach {
+    val tinylogProperties = rootProject.file("tinylog.properties").reader()
+        .use { Properties().apply { load(it) } }
+        .mapKeys { it.key as String }
+
+    filesMatching("tinylog*.properties") {
+        expand(tinylogProperties)
+    }
+}
 
 tasks.startScripts { applicationName = "kotlin-language-server" }
 
