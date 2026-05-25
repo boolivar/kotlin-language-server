@@ -44,7 +44,7 @@ class KotlinTextDocumentService(
     private val cp: CompilerClassPath
 ) : TextDocumentService, Closeable {
     private lateinit var client: LanguageClient
-    private val async = AsyncExecutor()
+    private val async = AsyncExecutor(javaClass.simpleName)
     private val formattingService = FormattingService(config.formatting)
 
     var debounceLint = Debouncer(Duration.ofMillis(config.diagnostics.debounceTime))

@@ -14,7 +14,7 @@ class KotlinProtocolExtensionService(
     private val cp: CompilerClassPath,
     private val sp: SourcePath
 ) : KotlinProtocolExtensions {
-    private val async = AsyncExecutor()
+    private val async = AsyncExecutor(javaClass.simpleName)
 
     override fun jarClassContents(textDocument: TextDocumentIdentifier): CompletableFuture<String?> = async.compute {
         uriContentProvider.contentOf(parseURI(textDocument.uri))
@@ -27,14 +27,14 @@ class KotlinProtocolExtensionService(
     override fun mainClass(textDocument: TextDocumentIdentifier): CompletableFuture<Map<String, Any?>> = async.compute {
         val fileUri = parseURI(textDocument.uri)
         val filePath = Paths.get(fileUri)
-        
+
         // we find the longest one in case both the root and submodule are included
         val workspacePath = cp.workspaceRoots.filter {
             filePath.startsWith(it)
         }.map {
             it.toString()
         }.maxByOrNull(String::length) ?: ""
-        
+
         val compiledFile = sp.currentVersion(fileUri)
 
         resolveMain(compiledFile) + mapOf(

@@ -39,7 +39,7 @@ class CompilerClassPath(
     )
         private set
 
-    private val async = AsyncExecutor()
+    private val async = AsyncExecutor(javaClass.simpleName)
 
     init {
         compiler.updateConfiguration(config)
@@ -171,6 +171,7 @@ class CompilerClassPath(
     override fun close() {
         compiler.close()
         outputDirectory.delete()
+        async.shutdown(awaitTermination = true)
     }
 }
 
