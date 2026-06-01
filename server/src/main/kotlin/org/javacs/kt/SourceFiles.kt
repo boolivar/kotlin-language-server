@@ -1,25 +1,21 @@
 package org.javacs.kt
 
 import com.intellij.openapi.util.text.StringUtil.convertLineSeparators
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.Language
+import org.eclipse.lsp4j.Range
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.filePath
-import org.javacs.kt.util.partitionAroundLast
 import org.javacs.kt.util.describeURIs
 import org.javacs.kt.util.describeURI
-import java.io.BufferedReader
-import java.io.StringReader
-import java.io.StringWriter
+import org.jetbrains.kotlin.utils.addToStdlib.butIf
+import org.jetbrains.kotlin.utils.addToStdlib.swap
 import java.io.IOException
 import java.io.FileNotFoundException
 import java.net.URI
 import java.nio.file.FileSystems
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 
 private class SourceVersion(val content: String, val version: Int, val language: Language?, val isTemporary: Boolean)
 
@@ -198,44 +194,28 @@ class SourceFiles(
     fun isIncluded(uri: URI): Boolean = exclusions.isURIIncluded(uri)
 }
 
-private fun patch(sourceText: String, change: TextDocumentContentChangeEvent): String {
-    val range = change.range
-    val reader = BufferedReader(StringReader(sourceText))
-    val writer = StringWriter()
+private fun patch(sourceText: String, change: TextDocumentContentChangeEvent): String
+    = sourceText.replaceRange(change.range.forString(sourceText), change.text)
 
-    // Skip unchanged lines
-    var line = 0
+private fun Range.forString(string: String): IntRange {
+    val (from, to) = (start to end)
+        .butIf(start.line > end.line || (start.line == end.line && start.character > end.character)) { it.swap() }
+    val fromOffset = string.lineStart(from.line)
+    val toOffset = string.lineStart(to.line - from.line, fromOffset)
+    return fromOffset + from.character until toOffset + to.character
+}
 
-    while (line < range.start.line) {
-        writer.write(reader.readLine() + '\n')
-        line++
+private fun String.lineStart(line: Int, offset: Int = 0): Int {
+    var index = offset
+    repeat(times = line) {
+        while (index < length) {
+            val c = get(index++)
+            if (c == '\n' || (c == '\r' && (index >= length || get(index) != '\n'))) {
+                break
+            }
+        }
     }
-
-    // Skip unchanged chars
-    for (character in 0 until range.start.character) {
-        writer.write(reader.read())
-    }
-
-    // Write replacement text
-    writer.write(change.text)
-
-    // Skip replaced text
-    for (i in 0 until (range.end.line - range.start.line)) {
-        reader.readLine()
-    }
-    if (range.start.line == range.end.line) {
-        reader.skip((range.end.character - range.start.character).toLong())
-    } else {
-        reader.skip(range.end.character.toLong())
-    }
-
-    // Write remaining text
-    while (true) {
-        val next = reader.read()
-
-        if (next == -1) return writer.toString()
-        else writer.write(next)
-    }
+    return index
 }
 
 private fun logAdded(sources: Collection<URI>, rootPath: Path?) {
