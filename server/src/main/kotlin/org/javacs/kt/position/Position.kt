@@ -21,62 +21,46 @@ fun extractRange(content: String, range: Range) =
         offset(content, range.end)
     )
 
-fun offset(content: String, position: Position) =
-    offset(content, position.line, position.character)
+fun offset(content: String, position: Position): Int
+    = position.toOffset(content)
 
 /**
  * Convert from 0-based line and column to 0-based offset
  */
 fun offset(content: String, line: Int, char: Int): Int {
-    val reader = content.reader()
     var offset = 0
-
     var lineOffset = 0
+
     while (lineOffset < line) {
-        val nextChar = reader.read()
-
-        if (nextChar == -1)
+        if (offset > content.length) {
             throw RuntimeException("Reached end of file before reaching line $line")
+        }
 
-        if (nextChar.toChar() == '\n')
+        if (content[offset] == '\n') {
             lineOffset++
+        }
 
         offset++
     }
-
-    var charOffset = 0
-    while (charOffset < char) {
-        val nextChar = reader.read()
-
-        if (nextChar == -1)
-            throw RuntimeException("Reached end of file before reaching char $char")
-
-        charOffset++
-        offset++
-    }
-
-    return offset
+    return (offset + max(0, char)).takeIf { it < content.length }
+        ?: throw RuntimeException("Reached end of file before reaching char $char")
 }
 
 fun position(content: String, offset: Int): Position {
-    val reader = content.reader()
+    if (offset > content.length) {
+        throw RuntimeException("Reached end of file before reaching offset $offset")
+    }
+
     var line = 0
     var char = 0
-
     var find = 0
     while (find < offset) {
-        val nextChar = reader.read()
-
-        if (nextChar == -1)
-            throw RuntimeException("Reached end of file before reaching offset $offset")
-
-        find++
         char++
-
-        if (nextChar.toChar() == '\n') {
+        if (content[find] == '\n') {
             line++
             char = 0
         }
+        find++
     }
 
     return Position(line, char)
@@ -111,6 +95,9 @@ val Position.isZero: Boolean
 
 val Range.isZero: Boolean
     get() = start.isZero && end.isZero
+
+fun Position.toOffset(content: String): Int
+    = offset(content, line, character)
 
 operator fun Position.compareTo(other: Position): Int {
     if (line == other.line && character == other.character) {
