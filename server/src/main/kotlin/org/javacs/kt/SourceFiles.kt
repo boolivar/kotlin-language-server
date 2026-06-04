@@ -5,12 +5,12 @@ import com.intellij.lang.Language
 import org.eclipse.lsp4j.Range
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
+import org.javacs.kt.position.compareTo
+import org.javacs.kt.position.offset
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.filePath
 import org.javacs.kt.util.describeURIs
 import org.javacs.kt.util.describeURI
-import org.jetbrains.kotlin.utils.addToStdlib.butIf
-import org.jetbrains.kotlin.utils.addToStdlib.swap
 import java.io.IOException
 import java.io.FileNotFoundException
 import java.net.URI
@@ -198,24 +198,11 @@ private fun patch(sourceText: String, change: TextDocumentContentChangeEvent): S
     = sourceText.replaceRange(change.range.forString(sourceText), change.text)
 
 private fun Range.forString(string: String): IntRange {
-    val (from, to) = (start to end)
-        .butIf(start.line > end.line || (start.line == end.line && start.character > end.character)) { it.swap() }
-    val fromOffset = string.lineStart(from.line)
-    val toOffset = string.lineStart(to.line - from.line, fromOffset)
-    return fromOffset + from.character until toOffset + to.character
-}
-
-private fun String.lineStart(line: Int, offset: Int = 0): Int {
-    var index = offset
-    repeat(times = line) {
-        while (index < length) {
-            val c = get(index++)
-            if (c == '\n' || (c == '\r' && (index >= length || get(index) != '\n'))) {
-                break
-            }
-        }
+    return if (start > end) {
+        offset(string, end) until offset(string, start)
+    } else {
+        offset(string, start) until offset(string, end)
     }
-    return index
 }
 
 private fun logAdded(sources: Collection<URI>, rootPath: Path?) {

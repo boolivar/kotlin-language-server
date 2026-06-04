@@ -28,8 +28,6 @@ fun offset(content: String, position: Position) =
  * Convert from 0-based line and column to 0-based offset
  */
 fun offset(content: String, line: Int, char: Int): Int {
-    assert(!content.contains('\r'))
-
     val reader = content.reader()
     var offset = 0
 
@@ -113,6 +111,16 @@ val Position.isZero: Boolean
 
 val Range.isZero: Boolean
     get() = start.isZero && end.isZero
+
+operator fun Position.compareTo(other: Position): Int {
+    if (line == other.line && character == other.character) {
+        return 0
+    }
+    if (line < other.line || (line == other.line && character < other.character)) {
+        return -1
+    }
+    return 1
+}
 
 fun location(expr: PsiElement): Location? {
     val content = try { expr.containingFile?.text } catch (e: NullPointerException) { null }
