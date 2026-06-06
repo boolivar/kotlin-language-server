@@ -15,11 +15,8 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import kotlin.math.max
 
-fun extractRange(content: String, range: Range) =
-    content.substring(
-        offset(content, range.start),
-        offset(content, range.end)
-    )
+fun extractRange(content: String, range: Range): String
+    = content.substring(range.forString(content))
 
 fun offset(content: String, position: Position): Int
     = position.toOffset(content)
@@ -129,4 +126,29 @@ fun changedRegion(oldContent: String, newContent: String): Pair<TextRange, TextR
     val newEnd = max(newContent.length - suffix, prefix)
 
     return Pair(TextRange(prefix, oldEnd), TextRange(prefix, newEnd))
+}
+
+fun Range.forString(content: String): IntRange {
+    if (start <= end) {
+        val from = content.lineOffset(start.line)
+        val to = content.lineOffset(end.line - start.line, from)
+        return from + start.character until to + end.character
+    } else {
+        return Range(end, start).forString(content)
+    }
+}
+
+private fun String.lineOffset(line: Int, offset: Int = 0): Int {
+    var index = offset
+    repeat(times = line) {
+        while (index < length) {
+            when (this[index++]) {
+                '\n' -> break
+                '\r' -> if (index >= length || this[index] != '\n') {
+                    break
+                }
+            }
+        }
+    }
+    return index
 }

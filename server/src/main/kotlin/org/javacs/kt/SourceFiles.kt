@@ -2,11 +2,9 @@ package org.javacs.kt
 
 import com.intellij.openapi.util.text.StringUtil.convertLineSeparators
 import com.intellij.lang.Language
-import org.eclipse.lsp4j.Range
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
-import org.javacs.kt.position.compareTo
-import org.javacs.kt.position.offset
+import org.javacs.kt.position.forString
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.filePath
 import org.javacs.kt.util.describeURIs
@@ -196,14 +194,6 @@ class SourceFiles(
 
 private fun patch(sourceText: String, change: TextDocumentContentChangeEvent): String
     = sourceText.replaceRange(change.range.forString(sourceText), change.text)
-
-private fun Range.forString(string: String): IntRange {
-    return if (start > end) {
-        offset(string, end) until offset(string, start)
-    } else {
-        offset(string, start) until offset(string, end)
-    }
-}
 
 private fun logAdded(sources: Collection<URI>, rootPath: Path?) {
     LOG.info("Adding {} under {} to source path", describeURIs(sources), rootPath)
