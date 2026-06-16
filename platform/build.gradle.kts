@@ -27,5 +27,9 @@ dependencies {
         api(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
         api(libs.org.openjdk.jmh.generator.annprocess)
         api(libs.org.xerial.sqlite.jdbc)
+        api(libs.org.tinylog.api)
+        api(libs.org.tinylog.impl)
+        api(libs.org.tinylog.jul)
+        api(libs.org.tinylog.slf4j)
     }
 }

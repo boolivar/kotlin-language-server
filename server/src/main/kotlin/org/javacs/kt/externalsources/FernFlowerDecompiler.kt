@@ -3,12 +3,16 @@ package org.javacs.kt.externalsources
 import java.nio.file.Files
 import java.nio.file.Path
 import org.javacs.kt.LOG
+import org.javacs.kt.LogLevel
+import org.javacs.kt.log
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.replaceExtensionWith
-import org.javacs.kt.util.withCustomStdout
 import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler
+import org.jetbrains.java.decompiler.main.decompiler.PrintStreamLogger
+import org.jetbrains.java.decompiler.main.extern.IFernflowerPreferences
 
 class FernFlowerDecompiler : Decompiler {
+
     private val outputDir: Path by lazy {
         Files.createTempDirectory("fernflowerOut").also {
             Runtime.getRuntime().addShutdownHook(Thread { it.toFile().deleteRecursively() })
@@ -16,9 +20,9 @@ class FernFlowerDecompiler : Decompiler {
     }
 
     private val decompilerOptions =
-        arrayOf(
-            "-iec=1", // Include entire classpath for better context
-            "-jpr=1", // Include parameter names in method signatures
+        mapOf(
+            IFernflowerPreferences.INCLUDE_ENTIRE_CLASSPATH to "1",
+            IFernflowerPreferences.USE_JAD_PARAMETER_RENAMING to "1",
         )
 
     override fun decompileClass(compiledClass: Path): Path {
@@ -31,11 +35,10 @@ class FernFlowerDecompiler : Decompiler {
 
     private fun decompile(input: Path, extension: String): Path {
         LOG.info("Decompiling ${input.fileName} using FernFlower...")
-
-        val args = decompilerOptions + arrayOf(input.toString(), outputDir.toString())
-
-        withCustomStdout(LOG.outStream) { ConsoleDecompiler.main(args) }
-
+        ConsoleDecompiler(outputDir.toFile(), decompilerOptions, FernflowerLogger).apply {
+            addSource(input.toFile())
+            decompileContext()
+        }
         val outName = input.fileName.replaceExtensionWith(extension)
         val outPath = outputDir.resolve(outName)
         if (!Files.exists(outPath)) {
@@ -45,4 +48,21 @@ class FernFlowerDecompiler : Decompiler {
         }
         return outPath
     }
+}
+
+internal object FernflowerLogger: PrintStreamLogger(null) {
+
+    override fun writeMessage(message: String?, t: Throwable) = log(2, LogLevel.ERROR, message, t)
+
+    override fun writeMessage(message: String?, severity: Severity) = log(2, severity.level, message)
+
+    override fun writeMessage(message: String?, severity: Severity, t: Throwable) = log(2, severity.level, message, t)
+
+    private val Severity.level
+        get() = when (this) {
+            Severity.INFO -> LogLevel.INFO
+            Severity.WARN -> LogLevel.WARN
+            Severity.ERROR -> LogLevel.ERROR
+            else -> LogLevel.DEBUG
+        }
 }

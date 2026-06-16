@@ -5,6 +5,7 @@ exposedVersion = "0.37.3"
 jmhVersion = "1.37"
 guavaVersion = "33.4.0-jre"
 fernFlowerVersion = "243.22562.218"
+tinylog = "2.7.0"
 
 [libraries]
 org-jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinVersion" }
@@ -44,6 +45,11 @@ org-openjdk-jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh
 
 org-xerial-sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version = "3.48.0.0" }
 
+org-tinylog-api = { module = "org.tinylog:tinylog-api-kotlin", version.ref = "tinylog" }
+org-tinylog-impl = { module = "org.tinylog:tinylog-impl", version.ref = "tinylog" }
+org-tinylog-jul = { module = "org.tinylog:jul-tinylog", version.ref = "tinylog" }
+org-tinylog-slf4j = { module = "org.tinylog:slf4j-tinylog", version.ref = "tinylog" }
+
 # buildSrc
 org-jetbrains-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin",version.ref = "kotlinVersion" }
 
@@ -51,3 +57,6 @@ org-jetbrains-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gra
 com-github-jk1-tcdeps = { id = "com.github.jk1.tcdeps", version = "1.6.2" }
 com-jaredsburrows-license = { id = "com.jaredsburrows.license", version = "0.9.8" }
 io-gitlab-arturbosch-detekt = { id = "io.gitlab.arturbosch.detekt", version = "1.22.0" }
+
+[bundles]
+tinylog = ["org-tinylog-impl", "org-tinylog-jul", "org-tinylog-slf4j"]
